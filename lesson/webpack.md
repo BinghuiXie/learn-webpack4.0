@@ -455,7 +455,50 @@ webpack
             之所以这么做，是因为在开发环境下有的代码要进行调试，如果被 Tree Shaking 删了，有可能就不对了，尤其是对 sourceMap
             在 production 环境下(需要上线的代码)，Tree Shaking 就会按照上面说的走
             在 production 环境下我们可以不写 webpack.config.js 里面的 **optimization: { usedExports: true // 哪些导出的模块被使用了，再进行打包 }** 可以不写，会自动的配置好
-        
+    - development 和 production 模式的区分打包
+        - 开发的时候一般使用 development 模式 
+        - 代码打包上线使用 production 模式
+        - 区别
+            - source
+            Map => 开发模式下的 sourceMap 很全，可以方便的定位的代码的问题，在上线环境下，sourceMap 就不是那么重要了，就会简洁一些
+            - 开发环境下打包代码CleanWebpackPlugin一般不压缩，上线代码是需要打包的时候需要被压缩
+            - development 模式下的 devtool 最好改为 "cheap-module-eval-source-map"，还有需要添加 **optimization: { usedExports: true }** 以使用 Tree Shaking 
+              production 模式下的 mode 改为 production， devtool 改为 "cheap-module-source-map"，可以去掉 **optimization: { usedExports: true }**
+              **所以在切换开发环境和线上环境的时候需要不停的手动修改 webpack.config.js 显得比较麻烦**
+        - 操作
+            - webpack.config.js 修改为 **webpack.dev.js**，表示是开发环境下的配置文件
+            - 创建 **webpack.prod.js** 表示线上模式的时候使用的是这个配置文件, 把 webpack.dev.js 里面的内容复制进去并进行线上模式对应的修改
+                - **mode: 'production',**
+                - **devtool: 'cheap-module-source-map'**
+                - 去掉 devServer
+                - 去掉 **new webpack.HotModuleReplacementPlugin()** 不需要 HMR
+                - 去掉 optimization
+            - 优化 package.json 如下
+                - **"dev": "webpack-dev-server --config webpack.dev.js",** // 开发模式运行 webpack.dev.js 文件的规则进行打包，打包命令 npm run dev || yarn dev
+                - **"build": "webpack --config webpack.prod.js",** // 线上模式运行 webpack.prod.js 文件的规则进行打包，打包命令 npm run dev || yarn dev
+        - 提取代码
+            - webpack.dev.js 和 webpack.prod.js 里面的代码有很多一样的，所以可以提取出来到一个公共的文件中
+            - 新建 webpack.common.js 作为公共代码放置的文件
+            - 安装  **npm install webpack-merge -D** (第三方库，可以用于合并不同文件的配置)
+            - 合并配置 (具体可见各个文件)
+                引入
+                    const merge = require('webpack-merge');
+                    const commonConfig = require('./webpack.common');
+                导出
+                    module.exports = merge(commonConfig, devConfig); // 合并基础配置和 **开发 || 线上** 配置
+            - 最后新建一个 build 文件夹把几个配置文件放进去，再修改 package.json 文件如下
+                - **"dev": "webpack-dev-server --config ./build/webpack.dev.js",**
+                - **"build": "webpack --config ./build/webpack.prod.js",** 
+        - 问题
+            - 打包的时候遇到了一个问题，打包生成的 dist 文件夹跑到了 build 文件夹下面
+            - 分析
+                因为把三个配置文件都放到了 build 文件夹下面，所以 output 选项里面的 **__dirname** 此时就是 **E:\path\path\path\path\build**，
+                而且原来的 output 的path 配置是 **path: path.resolve(__dirname, 'dist')** 也就是输出文件夹 dist 是在 __dirname 下面，在
+                没有把配置文件放到 build 里面的时候 __dirname 是根目录还好说，但是放进去以后路径多了一个 build ，所以就会在 build 下面生成 dist
+                所以修改成 **path: path.resolve(__dirname, '../dist')** 合并的时候跳过 build 往上找一层找到根目录再合并，就解决了
+                (具体可以运行目录下面的 path.js 文件看看 __dirname 和 path.resolve 的结合方式)
+                 
+                
                         
             
             

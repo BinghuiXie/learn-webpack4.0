@@ -2,36 +2,18 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const webpack = require('webpack');
 
 module.exports = {
-  // 打包模式，默认是 production
-  // production 模式下打包出来的文件是一个压缩过的文件， development 模式打包出来的就是一个没有压缩过的文件
-  mode: 'development',
-  devtool: 'cheap-module-eval-source-map', // 针对 development 环境
-  // cheap => 生成 sourceMap 的时候不需要带列信息，同时不去关注 loader 里面的代码
-  // module => 对 loader 里面的代码也生成一个 sourceMap
-  // devtool: 'cheap-module-source-map', // 针对 production 环境
   // entry => 项目做打包，从哪一个文件开始打包
   // 这样写与 entry : './src/index.js' 的效果是一样的
   entry: {
     main: './src/index.js',
     // sub: './src/index.js'
   },
-  // webpack-dev-server
-  devServer: {
-    // 服务器要启动在哪一个文件夹下
-    contentBase: './dist',
-    open: true, // 在启动的时候打开浏览器，自动访问启动的地址
-    port: 8080, // 端口号
-    hot: true, // HotMapReplacement => HMR 热更新
-    hotOnly: true // 即使 HMR 有问题，也不会重新刷新浏览器
-  },
-  // 遇到不同的文件类型，怎么打包这类的文件，就写在下面的 rules 里，也就是配置规则
   module: {
     // 模块配置规则, rules 是一个数组
     rules: [
-        {
+      {
         test: /\.(jpg|png|gif)$/,
         use: {
           // 遇到 jpg 文件的时候使用 file-loader 这个 loader 对文件进行打包
@@ -100,22 +82,18 @@ module.exports = {
       }
     ]
   },
-  // 打包文件输出配置
-  output: {
-    publicPath: './',
-    filename: '[name].js', // 默认是 main.js   [name] 就是指的 entry 中的 main 和 sub, 会打包两次， 会生成一个 main.js, 一个 sub.js，同样在 index.html 中会将两个 js 文件都引入
-    // 打包出的文件放到哪一个文件夹 ( dist ) 下面，值需要是一个绝对路径 __dirname => 指的是 webpack.config.js 所在的目录的这个路径
-    // __dirname 和 dist 进行一个结合
-    path: path.resolve(__dirname, 'dist')
-  },
   plugins: [
     new HtmlWebpackPlugin({
       template: 'src/index.html'
     }),
     new CleanWebpackPlugin(),
-    new webpack.HotModuleReplacementPlugin()
+    // 线上 production 不需要
+    // new webpack.HotModuleReplacementPlugin()
   ],
-  optimization: {
-    usedExports: true // 哪些导出的模块被使用了，再进行打包
-  }
+  output: {
+    filename: '[name].js', // 默认是 main.js   [name] 就是指的 entry 中的 main 和 sub, 会打包两次， 会生成一个 main.js, 一个 sub.js，同样在 index.html 中会将两个 js 文件都引入
+    // 打包出的文件放到哪一个文件夹 ( dist ) 下面，值需要是一个绝对路径 __dirname => 指的是 webpack.config.js 所在的目录的这个路径
+    // __dirname 和 dist 进行一个结合
+    path: path.resolve(__dirname, '../dist')
+  },
 };

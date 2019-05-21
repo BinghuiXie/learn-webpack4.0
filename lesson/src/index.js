@@ -84,4 +84,4 @@ import avatar from "./jintaiyan.jpg";
 // 可以把每一个模块理解成一个树结构，比如说我引入这个模块，只是引入了这个模块里面的一部分内容，那些没有被引入的可以通过 Tree Shaking 被“摇晃下去”，就不会被打包了，免得做无用功
 // 只支持 ES Module 的引入方法也就是 import引入
 import { add } from './math'
-add(1, 2);
+add(1, 6);
