@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "bundle": "webpack",
+    "bundle": "webpack --config ./build/webpack.dev.js",
     "watch": "webpack --watch",
     "dev": "webpack-dev-server --config ./build/webpack.dev.js",
     "build": "webpack --config ./build/webpack.prod.js",
@@ -21,6 +21,7 @@
     "@babel/preset-react": "^7.0.0",
     "autoprefixer": "^9.5.1",
     "babel-loader": "^8.0.6",
+    "babel-plugin-dynamic-import-webpack": "^1.1.0",
     "clean-webpack-plugin": "^2.0.2",
     "css-loader": "^2.1.1",
     "express": "^4.17.0",
@@ -40,6 +41,7 @@
   "dependencies": {
     "@babel/runtime": "^7.4.4",
     "@babel/runtime-corejs2": "^7.4.4",
+    "lodash": "^4.17.11",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   }

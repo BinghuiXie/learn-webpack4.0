@@ -7,6 +7,7 @@ module.exports = {
   // entry => 项目做打包，从哪一个文件开始打包
   // 这样写与 entry : './src/index.js' 的效果是一样的
   entry: {
+    // lodash: './src/lodash.js',
     main: './src/index.js',
     // sub: './src/index.js'
   },
@@ -90,6 +91,11 @@ module.exports = {
     // 线上 production 不需要
     // new webpack.HotModuleReplacementPlugin()
   ],
+  optimization: {
+    splitChunks: {
+      chunks: 'all'
+    }
+  },
   output: {
     filename: '[name].js', // 默认是 main.js   [name] 就是指的 entry 中的 main 和 sub, 会打包两次， 会生成一个 main.js, 一个 sub.js，同样在 index.html 中会将两个 js 文件都引入
     // 打包出的文件放到哪一个文件夹 ( dist ) 下面，值需要是一个绝对路径 __dirname => 指的是 webpack.config.js 所在的目录的这个路径

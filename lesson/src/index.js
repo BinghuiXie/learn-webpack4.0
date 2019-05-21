@@ -83,5 +83,21 @@ import avatar from "./jintaiyan.jpg";
 // 把一个模块里面没有用的东西都去掉，在这个例子中，只引入了 add 方法，而 minus 方法没有引入但是默认也会打包，那么 Tree shaking 就可以把这个没有用到的 miuns "摇晃掉"，不让他被打包
 // 可以把每一个模块理解成一个树结构，比如说我引入这个模块，只是引入了这个模块里面的一部分内容，那些没有被引入的可以通过 Tree Shaking 被“摇晃下去”，就不会被打包了，免得做无用功
 // 只支持 ES Module 的引入方法也就是 import引入
-import { add } from './math'
-add(1, 6);
+// import { add } from './math'
+// add(1, 6);
+import _ from "lodash"; // 写在这里 利用 webpack 帮助我们进行代码分割
+
+console.log(_.join(['a', 'b', 'c'], '***')); // 字符串连接函数 打印出：a***b***c
+
+// 异步加载 lodash
+function getComponent() {
+  return import('lodash').then(({ default: _ }) => {
+    var element = document.createElement('div');
+    element.innerHTML = _.join(['Dell', 'Lee'], '-');
+    return element;
+  })
+}
+
+getComponent().then(element => {
+  document.body.appendChild(element)
+});

@@ -497,6 +497,37 @@ webpack
                 没有把配置文件放到 build 里面的时候 __dirname 是根目录还好说，但是放进去以后路径多了一个 build ，所以就会在 build 下面生成 dist
                 所以修改成 **path: path.resolve(__dirname, '../dist')** 合并的时候跳过 build 往上找一层找到根目录再合并，就解决了
                 (具体可以运行目录下面的 path.js 文件看看 __dirname 和 path.resolve 的结合方式)
+                
+    - webpack 和 code splitting (代码分割)
+        - 安装一个包  **npm install lodash --save**
+        - 默认情况下所有的业务代码都会被打包放到 main.js 中
+          举个例子，在业务代码(index.js)中引入 lodash，如果说引入的 lodash 模块的大小是 1MB，业务逻辑代码非常多也有 1MB，这样生成的 main.js 文件至少有 2MB，这样带来的问题有
+            - 打包文件很大，加载时间很长
+            - 每次重新打包生成的 main.js 都是 2MB，这样用户每次访问页面，就又要加载 2MB 的内容
+        - 拆分代码 (code splitting) **(手动实现代码分割)**
+              main.js 被拆成 lodash.js 和 main.js(现在里面只有业务代码) 大小都是 1MB，在 lodash.js 中引入 lodash，并将变量挂载到全局环境下
+              并在 webpack.common.js 文件的 entry 中添加另一个文件入口 **lodash: './src/lodash.js',** 这样有关 lodash 的代码会另外打包到一个文件中
+              现在用户第一次浏览页面就是直接去加载两个 1MB 的文件，因为浏览器是可以并行加载的，这样的话同时加载两个 1MB 文件会比加载一个 2MB 文件快一点
+              而且还有一个好处就是修改了业务代码，用户重新访问页面的时候只需要加载 main.js 即可，因为 lodash.js 在缓存里面已经有了，就不需要重新加载
+              所以重新访问的话，这样子就可以提高加载速度了，因为相比之前的每次加载 2MB 的代码，现在只需要加载 1MB 即可
+        - 借助 webpack 帮助实现 code splitting
+            在 webpack.common.js 中添加配置
+              **optimization: {
+                    splitChunks: {
+                      chunks: 'all'
+                    }
+                }**
+            遇到公用的类库的时候，会把共用的类库放到一个文件(vendors~main.js)，业务代码打包到一个文件 ，自动的分开进行打包
+            这样的话也不需要手动的把类库的引入和业务代码分开到不同的文件里面写了，写到一个文件里面，webpack 会自动分开进行打包
+        - 另一种方式实现代码分割
+            异步引入模块
+                听不懂--、
+        - 总结
+            - 代码分割 和 webpack 无关 只是一种提高性能的方式
+            - webpack 中实现代码分割两种方式
+                - 同步代码 => 只需要在 webpack.common.js 中做 optimization 的而配置
+                - 异步代码 => 无需做任何配置，会自动进行代码分割
+            
                  
                 
                         
