@@ -2,8 +2,11 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-
-module.exports = {
+const webpack = require('webpack');
+const merge = require('webpack-merge');
+const devConfig = require('./webpack.dev');
+const prodConfig = require('./webpack.prod');
+const commonConfig = {
   // entry => 项目做打包，从哪一个文件开始打包
   // 这样写与 entry : './src/index.js' 的效果是一样的
   entry: {
@@ -15,6 +18,9 @@ module.exports = {
     // 模块配置规则, rules 是一个数组
     rules: [
       {
+        test: require.resolve('../src/globals.js'),
+        loader: 'exports-loader?file,parse=helpers.parse'
+      }, {
         test: /\.(jpg|png|gif)$/,
         use: {
           // 遇到 jpg 文件的时候使用 file-loader 这个 loader 对文件进行打包
@@ -42,7 +48,14 @@ module.exports = {
       }, {
         test: /\.js$/,
         exclude: /node_modules/, // 如果 js 文件在 node_modules 里面就不使用 babel-loader，因为 node_modules 里面的代码是第三方代码，没必要进行转义，因为已经转好了，所以只有文件在 src 下面 babel-loader 才生效
-        loader: 'babel-loader'
+        use: [
+          // {
+          //   loader: 'imports-loader?this=>window'
+          // },
+          {
+            loader: 'babel-loader'
+          }
+        ]
         // 这些配置已经移动到了 .babelrc 文件中
         // options: {
         //   "presets": [['@babel/preset-env', {
@@ -71,6 +84,11 @@ module.exports = {
       template: 'src/index.html'
     }),
     new CleanWebpackPlugin(),
+    // ProvidePlugin [https://www.webpackjs.com/plugins/provide-plugin/]() 自动加载模块，不用 import 或者 require
+    new webpack.ProvidePlugin({ // 当检测到一个模块里面使用了 $ 或者 _ 这个字符串，就会自动的帮助我们引入 jQuery (或者 lodash )，然后把 jQuery (lodash) 赋值给 $ (_) 这个变量，就类似与在模块顶部写一个 import $ (_) from 'jquery'('lodash')
+      $: 'jquery',
+      _join: ['lodash', 'join']
+    })
     // 线上 production 不需要
     // new webpack.HotModuleReplacementPlugin()
   ],
@@ -108,4 +126,15 @@ module.exports = {
     path: path.resolve(__dirname, '../dist'),
     chunkFilename: '[name].chunk.js'
   },
+};
+
+// 函数
+module.exports = (env) => {
+  if (env && env.production) {
+    // 线上环境
+    return merge(commonConfig, prodConfig)
+  } else {
+    // 开发环境
+    return merge(commonConfig, devConfig)
+  }
 };

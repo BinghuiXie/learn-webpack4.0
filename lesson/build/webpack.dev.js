@@ -1,7 +1,7 @@
 // module, entry , 一些公用插件, output 等公共模块都已经提取到 webpack.common.js 中
 const webpack = require('webpack');
-const merge = require('webpack-merge');
-const commonConfig = require('./webpack.common');
+// const merge = require('webpack-merge');
+// const commonConfig = require('./webpack.common');
 
 const devConfig = {
   // 打包模式，默认是 production
@@ -57,4 +57,5 @@ const devConfig = {
   ]
 };
 
-module.exports = merge(commonConfig, devConfig);
+// module.exports = merge(commonConfig, devConfig);
+module.exports = devConfig;

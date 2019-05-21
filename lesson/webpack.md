@@ -591,9 +591,91 @@ webpack
             - 使用插件： 在 optimization 中添加项： **minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],**
             - 运行 **npm run build** 进行线上环境的打包
         - 剩下的配置可以看官方文档
-        
-                 
+    - 关于 chunkFilename 和 filename ，见官方文档链接 [https://webpack.docschina.org/configuration/output/#output-chunkfilename]()
+    - Shimming (垫片) => 处理一些 webpack 在其他方面的兼容性问题，例如浏览器的高低版本，局部变量与全局变量，this 的指向，全局的 exports 等
+        - 实现一些 webpack 原始打包实现不了的效果，都可以归类为 Shimming(垫片)
+        - 使用场景
+            - shimming 全局变量
+                - webpack 可以识别并打包一些通过 import, commonJS, 或 AMD 编写的模块，但是，一些较为古老的第三方库的代码里面可能会去引用一些全局变量 (比如说 jQuery 要使用 $ 这个全局变量, lodash 会使用 _ 这个全局变量)
+                  那么这些 "不符合规范的模块" 就是 shimming 发挥作用的地方。(如果这段话看不懂可以看下面的例子解释)
+                - jquery.ui.js 是一个简单的改变 body 背景色的代码的一个库，通过 export 导出在 index.js 中引用，index.js 中引入了 jQuery 中的 $ 变量
+                  然而，这样是没有办法改变 body 的背景色的，因为一个模块中的变量**只在当前模块起作用，不会影响到其他模块**，也就是说，虽然在 index.js 下面引入了 $,但是这个 $ 对 jquery.ui.js 中的
+                  $ 是不起作用的，而我们在 jquery.ui.js 又没有引入 $, 所以就会报错，提示 **$ is not defined**。
+                  首先这样做的好处是很明显的，也就是模块相互之间的变量不会相互影响和污染,不会有任何的耦合，所以如果想在 jquery.ui.js 这个文件中使用 $, 就必须在顶部引入
+                  也就是 **import $ from 'jquery'**
+                  但是这样做有一个问题，就是说，这个 jquery.ui.js 是一个我们自己编写的第三方库，引入他就是起到一个改变背景色的作用，现在这个模块是我们自己编写的可以我们随便改，但是如果这个库是一个 npm 包,
+                  是放在 node_modules 下面的，那么这样子我们就不好去改人家的源码，那么就意味着这个模块就用不了了吗？这时候，就可以使用 shimming 来帮助我们。
+                - 配置
+                    - 在 webpack.common.js 中，进行下面的配置
+                        - 引入 webpack: const webpack = require('webpack');
+                            webpack 中提供了一个叫做 ProvidePlugin 的插件
+                        - 注册使用插件
+                            当检测到一个模块 (比如说一些第三方库或 npm 包) 里面使用了 $ 或者 _ 这个字符串，这个插件就会自动的帮助我们引入 jQuery (或者 lodash )，然后把 jQuery (lodash) 赋值给 $ ( _ ) 这个变量，
+                            就类似与在模块顶部写一个 **import $ (_) from 'jquery'('lodash')**
+                            这样的话不用我们在模块顶部自己引入这些全局变量了
+                          **new webpack.ProvidePlugin({ 
+                                  $: 'jquery',
+                                  _join: ['lodash', 'join'] // 比如说我们自己定义了一个 _join(就是把 _.join 换一个名字) ，作用就是 _.join 也就是字符串连接，那么因为 lodash 里面没有 _join，所以我们可以按照前面那种配置，这样的话检测到使用了 _join，那么就会把 lodash 下面的 join 打包放到对应的模块下面，同时给他起个名字叫 _join
+                            })**
+            - 细粒度 shimming (改变 this 指向)
+                - 一个模块里面的 this 经过测试，它的指向是 undefined，现在想让每一个模块的 this 都指向 window，这个做法也算是 shimming
+                - 安装 loader : **npm install imports-loader -D**
+                - 配置： 原来的 webpack.common.js 文件中，modules 下面的 rules 中·，碰到 js 文件时是使用 babel-loader，现在再加一个 imports-loader,同时改变 this 指向
+                    use: [
+                        {
+                          loader: 'babel-loader'
+                        }, {
+                          loader: 'imports-loader?this=>window'
+                        }
+                    ]
+                - 这样的话 this 的指向就是指向了 window
+            - 全局导出
+                - 设想这么一个场景，一个比较古老的模块，它里面创建了一些全局的变量，但是因为这个模块比较老，这些全局变量没有进行 ES module (export) 的导出，就是说我们没办法在其他模块里面通过
+                  import 引入这些变量，但是又想使用它，那怎么办呢，可以通过 **exports-loader** 来实现
+                - 安装： **npm install exports-loader --save-dev**
+                - 配置
+                    我在 src 下面创建了一个 globals.js 文件(根据官网指示),代码就见官网 [https://webpack.js.org/guides/shimming#global-exports]()，现在想在另一个模块里面使用
+                    里面的 file 变量和 helpers 下面的 parse 函数，就可以这么配置，在 webpack.common.js 下面 modules 的 rules 里面加一个：
+                        {
+                            test: require.resolve('../src/globals.js'),
+                            loader: 'exports-loader?file,parse=helpers.parse' // 表示需要导出 globals,js 文件下面的 file 和 helpers.parse
+                        } 
+                    这就类似于在 globals.js 文件的头部加了一个 **export file** ,**export helpers.parse** (可以类比前面的自动添加引入理解，这个是自动添加导出)
+                    这样的话在一些比较古老的 npm 包，虽然里面的变量没有导出，但是我们也可以直接导入使用了
+                    最后注意在 index.js 中引入变量 
+                        **import {file, parse} from './globals.js'**
+    - 环境变量的使用
+        - 之前我们区分开发环境和线上环境是通过两个不同的配置文件实现的，也就是线上环境的时候去打包 webpack.prod.js 文件, 开发环境的时候会打包 webpack.dev.js
+        - 另一种打包两种文件的方式是使用环境变量，具体实现如下：
+            - 在 webpack.prod.js 和 webpack.dev.js 中，我们都引入了 merge 和 commonConfig ，然后通过 merge 函数合并不同的配置项，现在我们在这两个文件中可以删除这两行引入代码
+              同时导出也不是导出 merge 函数合并后的配置，而是只导出本文件的配置(具体可见对应文件)
+            - 在 webpack.common.js 中引入两个配置项和 merge 函数
+                **const devConfig = require('./webpack.dev');**
+                **const prodConfig = require('./webpack.prod');**
+                **const merge = require('webpack-merge');**
+            - 原来是直接导出一个对象，现在先进行赋值： **const commonConfig = { entry ...}**
+            - 在底部进行合并，通过传入的全局变量进行区分合并
+                module.exports = (env) => {
+                  if (env && env.production) {
+                    // 线上环境
+                    return merge(commonConfig, prodConfig)
+                  } else {
+                    // 开发环境
+                    return merge(commonConfig, devConfig)
+                  }
+                };
+                其中 env 是传入的全局对象，它有一个属性叫 production，可以通过判断 env 是否存在与 env.production 是否存在来进行不同环境的打包
+            - 传入全局对象 env
+                在 package.json 中，修改如下：
+                    "scripts": {
+                        "dev-build": "webpack --config ./build/webpack.**common**.js", // 均使用 webpack.common.js 进行打包
+                        "watch": "webpack --watch",
+                        "dev": "webpack-dev-server --config ./build/webpack.**common**.js",
+                        "build": "webpack **--env.production** --config ./build/webpack.**common**.js", // 通过 --env.production 传入全局对象，env.production 的值默认是 true
+                        "middleware": "node server.js"
+                      },
+                这样就可以根据传入的全局变量来判断该对那种环境进行打包了
+                比如说运行 **npm run dev-build** 和 **npm run dev** ，因为这两个都是对应的开发环境，没有传入全局对象，所以在判断的时候走的是 else 分支，也就是进行的开发环境的打包
+                运行 **npm run build**，因为传入了全局对象，所以打包的是生产环境
                 
-                        
-            
-            
+        

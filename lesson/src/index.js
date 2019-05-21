@@ -1,12 +1,16 @@
+import { file, parse } from './globals.js';
+// import $ from 'jquery'
+// import _ from 'lodash'
+// import { ui } from './jquery.ui'
 // 入口文件
 // 如果编写一个库的话可以把这行注释掉，业务代码可以添加 babel-polyfill
 // import "@babel/polyfill"; // 这个和 useBuiltIns: 'usage' 有一个就可以
-import Header from './header'
-import SideBar from './sidebar'
-import Content from './content'
-import CreateAvatar from './createAvatar'
-import style from './index.scss'
-import avatar from "./jintaiyan.jpg";
+// import Header from './header'
+// import SideBar from './sidebar'
+// import Content from './content'
+// import CreateAvatar from './createAvatar'
+// import style from './index.scss'
+// import avatar from "./jintaiyan.jpg";
 // import './iconfont.css'
 // import './style.css'
 // import counter from './counter'
@@ -87,25 +91,37 @@ import avatar from "./jintaiyan.jpg";
 // add(1, 6);
 
 // code splitting
-import _ from "lodash"; // 写在这里 利用 webpack 帮助我们进行代码分割
-import test from './test'
+// import _ from "lodash"; // 写在这里 利用 webpack 帮助我们进行代码分割
+// import test from './test'
+//
+// console.log(test.name);
+//
+// console.log(_.join(['a', 'b', 'c'], '***')); // 字符串连接函数 打印出：a***b***c
+//
+// // 异步加载 lodash
+// function getComponent() {
+//   return import('lodash').then(({ default: _ }) => {
+//     var element = document.createElement('div');
+//     element.innerHTML = _.join(['Dell', 'Lee'], '-');
+//     return element;
+//   })
+// }
+// document.addEventListener('click', () => {
+//   getComponent().then(element => {
+//     document.body.appendChild(element)
+//   });
+// });
+//
+// css code splitting
+// import './style.css'
 
-console.log(test.name);
+// ui();
+//
+// const dom = $('<div>');
+// dom.html(_.join(['Tiki', 'Taka'], '-'));
+// $('body').append(dom);
 
-console.log(_.join(['a', 'b', 'c'], '***')); // 字符串连接函数 打印出：a***b***c
+console.log(this);
 
-// 异步加载 lodash
-function getComponent() {
-  return import('lodash').then(({ default: _ }) => {
-    var element = document.createElement('div');
-    element.innerHTML = _.join(['Dell', 'Lee'], '-');
-    return element;
-  })
-}
-document.addEventListener('click', () => {
-  getComponent().then(element => {
-    document.body.appendChild(element)
-  });
-});
-
-import './style.css'
+console.log(file);
+parse();
