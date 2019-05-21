@@ -85,7 +85,12 @@ import avatar from "./jintaiyan.jpg";
 // 只支持 ES Module 的引入方法也就是 import引入
 // import { add } from './math'
 // add(1, 6);
+
+// code splitting
 import _ from "lodash"; // 写在这里 利用 webpack 帮助我们进行代码分割
+import test from './test'
+
+console.log(test.name);
 
 console.log(_.join(['a', 'b', 'c'], '***')); // 字符串连接函数 打印出：a***b***c
 
@@ -97,7 +102,10 @@ function getComponent() {
     return element;
   })
 }
-
-getComponent().then(element => {
-  document.body.appendChild(element)
+document.addEventListener('click', () => {
+  getComponent().then(element => {
+    document.body.appendChild(element)
+  });
 });
+
+import './style.css'

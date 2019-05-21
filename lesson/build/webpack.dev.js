@@ -12,6 +12,33 @@ const devConfig = {
   // module => 对 loader 里面的代码也生成一个 sourceMap
   // devtool: 'cheap-module-source-map', // 针对 production 环境
   // webpack-dev-server
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          'postcss-loader'
+        ]
+      }, {
+        test: /\.scss$/,
+        use: [
+          // 'style-loader', // creates style nodes from JS strings
+          'style-loader',
+          {
+            loader: 'css-loader', // translates CSS into CommonJS,
+            options: {
+              importLoaders: 2,
+              modules: true
+            }
+          },
+          'sass-loader', // compiles Sass to CSS, using Node Sass by default
+          'postcss-loader' // 帮助添加 css 厂商前缀
+        ]
+      },
+    ]
+  },
   devServer: {
     // 服务器要启动在哪一个文件夹下
     contentBase: './dist',
@@ -27,10 +54,7 @@ const devConfig = {
     // }),
     // new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin()
-  ],
-  optimization: {
-    usedExports: true // 哪些导出的模块被使用了，再进行打包
-  }
+  ]
 };
 
 module.exports = merge(commonConfig, devConfig);

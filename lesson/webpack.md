@@ -527,7 +527,71 @@ webpack
             - webpack 中实现代码分割两种方式
                 - 同步代码 => 只需要在 webpack.common.js 中做 optimization 的而配置
                 - 异步代码 => 无需做任何配置，会自动进行代码分割
-            
+        - 关于 **SplitChunksPlugin** 的配置参数可以见官方文档 [https://webpack.js.org/plugins/split-chunks-plugin]()
+                // 一些该插件的配置参数
+                **optimization**: { // https://webpack.js.org/plugins/split-chunks-plugin
+                    **splitChunks**: {
+                      // 同步代码逻辑
+                      **chunks**: 'all',
+                      **minSize**: 30000, // 只有大于 30KB 的时候才进行代码分割
+                      **minChunks**: 1, // 打包后生成的 Chunks (js 文件) 中至少将一个模块引用了多少次才会被分割
+                      **maxAsyncRequests**: 5, // 最多同时加载的模块数的个数，如果同时加载 10 个，那么前 5 个会被分割，超过的 5 个就不会进行代码分割
+                      **maxInitialRequests**: 3, // 入口文件引入的库做代码分割，最多只能分割 3 个文件出来，再多的引入就不分割了
+                      **automaticNameDelimiter**: '~', // 组和文件名之间的连接符
+                      **name**: true, // cacheGroups 里面的名字会生效
+                      **cacheGroups**: {
+                        **vendors**: {
+                          // 如果满足上面的几个条件 (minSize minChunks maxAsyncRequests 等)，那么就会进行代码分割，然后如果是从 node_modules 里面引入的话就会分割到 vendor.js 中
+                          **test**: /[\\/]node_modules[\\/]/,
+                          **priority**: -10, // 值越大，优先级越高，那么模块就会被打包到优先级高的里面去 (-10 的优先级大于 default 的-20)，所以既满足 vendors 也满足 default 的会优先被打包到 vendors 下面的 vendor.js 中
+                          **filename**: 'vendor.js'
+                        },
+                        // 默认情况 （所有的模块都符合，因为根本就没有 test ）下会分割到哪一个文件中
+                        **default**: {
+                          **priority**: -20,
+                          **reuseExistingChunk**: true, // 如果一个模块已经被打包过，那么不会进行重新打包，直接复用就可以
+                          **filename**: 'common.js'
+                        }
+                      }
+                    }
+                  },
+    - Lazy Loading 懒加载
+        通过 import 去异步的引入一个模块
+        什么时候执行加载一个模块的代码，再加载这个模块
+        比如说用 vue 或者 react 写代码的时候，浏览首页的时候只加载首页的代码，什么列表页，详情页的代码都不加载，只有当路由切换的时候，才会去加载路由跳转到的页面，把每个页面做一个分割
+        这个路由跳转就是一个懒加载的触发条件，就是一开始路由不匹配的时候不加载对应的租件，只有路由匹配了才加载对应的组建
+    - Chunk 是什么
+        - 打包过程中生成的 js 文件都叫做一个 Chunk
+    - CSS 文件代码的分割 (**MiniCssExtractPlugin**) [https://webpack.js.org/plugins/mini-css-extract-plugin]()
+        - webpack 在打包 css 文件时，会直接将 css 代码打包到 js 文件中，不会单独打包出 css 文件，这就是 css in js
+        - 借助插件把 css 单独打包到 css 文件中
+        - 安装：
+            - **npm install --save-dev mini-css-extract-plugin**
+        - 使用
+            - 引入(webpack.prod.js)： **const MiniCssExtractPlugin = require('mini-css-extract-plugin');**
+            - 使用：先在 plugins 配置 **new MiniCssExtractPlugin()**
+                   根据官方文档，需要把 css 相关的文件(css, scss,less等)的 style-loader 换成 MiniCssExtractPlugin 提供的 loader
+                    {
+                        test: /\.css$/,
+                        use: [
+                          {
+                            // 原 style-loader 替换为插件提供的 loader
+                            **loader: MiniCssExtractPlugin.loader**
+                          },
+                          'css-loader',
+                        ],
+                    },
+        - 生成的 css 文件做一下代码压缩 **(只针对生产环境(production))**
+            - 安装插件 
+                **npm install --save-dev optimize-css-assets-webpack-plugin**
+                **npm install --save-dev terser-webpack-plugin**
+            - 引入插件 (webpack.prod.js) 
+                **const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');**
+                **const TerserJSPlugin = require('terser-webpack-plugin');**
+            - 使用插件： 在 optimization 中添加项： **minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],**
+            - 运行 **npm run build** 进行线上环境的打包
+        - 剩下的配置可以看官方文档
+        
                  
                 
                         

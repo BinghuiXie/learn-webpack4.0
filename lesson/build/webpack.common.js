@@ -31,23 +31,6 @@ module.exports = {
           }
         }
       }, {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader']
-      }, {
-        test: /\.scss$/,
-        use: [
-          'style-loader', // creates style nodes from JS strings
-          {
-            loader: 'css-loader', // translates CSS into CommonJS,
-            options: {
-              importLoaders: 2,
-              modules: true
-            }
-          },
-          'sass-loader', // compiles Sass to CSS, using Node Sass by default
-          'postcss-loader' // 帮助添加 css 厂商前缀
-        ]
-      }, {
         test: /\.(eot|ttf|woff|woff2|svg)$/,
         use: {
           loader: 'file-loader',
@@ -91,15 +74,38 @@ module.exports = {
     // 线上 production 不需要
     // new webpack.HotModuleReplacementPlugin()
   ],
-  optimization: {
+  optimization: { // https://webpack.js.org/plugins/split-chunks-plugin
+    usedExports: true, // 哪些导出的模块被使用了，再进行打包 Tree Shaking
     splitChunks: {
-      chunks: 'all'
+      // 同步代码逻辑
+      chunks: 'all', // 对同步和异步的代码都进行分割
+      minSize: 30000, // 只有大于 30KB 的时候才进行代码分割
+      minChunks: 1, // 打包后生成的 Chunks (js 文件) 中至少将一个模块引用了多少次才会被分割
+      maxAsyncRequests: 5, // 最多同时加载的模块数的个数，如果同时加载 10 个，那么前 5 个会被分割，超过的 5 个就不会进行代码分割
+      maxInitialRequests: 3, // 入口文件引入的库做代码分割，最多只能分割 3 个文件出来，再多的引入就不分割了
+      automaticNameDelimiter: '~', // 组和文件名之间的连接符
+      name: true, // cacheGroups 里面的名字会生效
+      cacheGroups: {
+        vendors: {
+          // 如果满足上面的几个条件 (minSize minChunks maxAsyncRequests 等)，那么就会进行代码分割，然后如果是从 node_modules 里面引入的话就会分割到 vendor.js 中
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10, // 值越大，优先级越高，那么模块就会被打包到优先级高的里面去 (-10 的优先级大于 default 的-20)，所以既满足 vendors 也满足 default 的会优先被打包到 vendors 下面的 vendor.js 中
+          filename: 'vendor.js'
+        },
+        // 默认情况 （所有的模块都符合，因为根本就没有 test ）下会分割到哪一个文件中
+        default: {
+          priority: -20,
+          reuseExistingChunk: true, // 如果一个模块已经被打包过，那么不会进行重新打包，直接复用就可以
+          filename: 'common.js'
+        }
+      }
     }
   },
   output: {
     filename: '[name].js', // 默认是 main.js   [name] 就是指的 entry 中的 main 和 sub, 会打包两次， 会生成一个 main.js, 一个 sub.js，同样在 index.html 中会将两个 js 文件都引入
     // 打包出的文件放到哪一个文件夹 ( dist ) 下面，值需要是一个绝对路径 __dirname => 指的是 webpack.config.js 所在的目录的这个路径
     // __dirname 和 dist 进行一个结合
-    path: path.resolve(__dirname, '../dist')
+    path: path.resolve(__dirname, '../dist'),
+    chunkFilename: '[name].chunk.js'
   },
 };
