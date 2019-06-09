@@ -242,6 +242,7 @@ webpack
         - HtmlWebpackPlugin
             - 安装 ： **npm install --save-dev html-webpack-plugin**
             - 使用
+                引入： **const HtmlWebpackPlugin = require('html-webpack-plugin');**
                 **plugins: [new HtmlWebpackPlugin()]** // 与 entry 同级的 plugins 配置
             - 作用
                 会在**打包结束的这个时刻**自动生成一个 html 文件，并把打包生成的 js 自动引入到 html 中，但是默认不会生成一个 id 是 root 的 div 标签，
@@ -376,9 +377,9 @@ webpack
                    
                         options: {
                             // 中括号 "[]" 里面第一个参数是 preset 的名字，第二个参数是一些配置
-                          "presets": [ **[** '@babel/preset-env', {
+                          "presets": [[ '@babel/preset-env', {
                             useBuiltIns: 'usage' // 根据业务代码，只把用到的 ES6 的新特性、对象、方法进行转义
-                          } **]** ]
+                          }]]
                         }
                     这样打包完成后的 main.js 变成了 228 KB
             - 针对浏览器
@@ -677,5 +678,7 @@ webpack
                 这样就可以根据传入的全局变量来判断该对那种环境进行打包了
                 比如说运行 **npm run dev-build** 和 **npm run dev** ，因为这两个都是对应的开发环境，没有传入全局对象，所以在判断的时候走的是 else 分支，也就是进行的开发环境的打包
                 运行 **npm run build**，因为传入了全局对象，所以打包的是生产环境
+    - 库 (library) 代码的打包 (非业务代码)
+        
                 
         

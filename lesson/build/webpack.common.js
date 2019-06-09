@@ -14,6 +14,7 @@ const commonConfig = {
     main: './src/index.js',
     // sub: './src/index.js'
   },
+  externals: ["jquery"],
   module: {
     // 模块配置规则, rules 是一个数组
     rules: [

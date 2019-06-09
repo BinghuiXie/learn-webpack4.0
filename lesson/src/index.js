@@ -1,5 +1,4 @@
-import { file, parse } from './globals.js';
-// import $ from 'jquery'
+// import { file, parse } from './globals.js';
 // import _ from 'lodash'
 // import { ui } from './jquery.ui'
 // 入口文件
@@ -66,21 +65,21 @@ import { file, parse } from './globals.js';
 // });
 
 // react
-// import React from 'react'
-// import ReactDom from 'react-dom'
+import React from 'react'
+import ReactDom from 'react-dom'
 //
-// class App extends React.Component{
-//   render () {
-//     return (
-//       <div>Hello World</div>
-//     )
-//   }
-// }
-//
-// ReactDom.render(
-//   <App />,
-//   document.getElementById("root")
-// );
+class App extends React.Component{
+  render () {
+    return (
+      <div>Hello World</div>
+    )
+  }
+}
+
+ReactDom.render(
+  <App />,
+  document.getElementById("root")
+);
 
 
 // tree shaking
@@ -121,7 +120,20 @@ import { file, parse } from './globals.js';
 // dom.html(_.join(['Tiki', 'Taka'], '-'));
 // $('body').append(dom);
 
-console.log(this);
+// console.log(this);
+//
+// console.log(file);
+// parse();
 
-console.log(file);
-parse();
+// import color from './test_externals'
+// import color1 from './test_externals1'
+// import color2 from './test_externals2'
+// import color3 from './test_externals3'
+// import color4 from './test_externals4'
+// import color5 from './test_externals5'
+// color();
+// color1();
+// color2();
+// color3();
+// color4();
+// color5();
